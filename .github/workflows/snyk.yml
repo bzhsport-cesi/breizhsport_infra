@@ -1,0 +1,47 @@
+name: Snyk Security Analysis
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snyk:
+    name: Run Snyk Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      # Vérifier le dépôt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Installer Snyk
+      - name: Set up Snyk
+        uses: snyk/actions/setup@v2
+        with:
+          version: 'latest' # Spécifiez la version ou utilisez "latest"
+
+      # Authentifier Snyk
+      - name: Authenticate Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }} # Ajoutez votre Snyk API Token dans les secrets GitHub
+        run: snyk auth $SNYK_TOKEN
+
+      # Analyser les dépendances
+      - name: Test for vulnerabilities
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --all-projects --severity-threshold=medium
+
+      # (Optionnel) Monitor the project on Snyk
+      - name: Monitor project in Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk monitor --all-projects

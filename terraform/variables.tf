@@ -14,6 +14,11 @@ variable "ssh_public_key" {
   type        = string
 }
 
+variable "ssh_private_key" {
+  description = "private SSH key name for the instances"
+  type        = string
+}
+
 variable "username" {
   description = "Username for the instances"
   type        = string

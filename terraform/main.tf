@@ -22,4 +22,31 @@ resource "warren_floating_ip" "denvr_ip" {
   count = "${var.vm_number}"
   name = "ip-${var.vm_prefix}-${count.index}"
   assigned_to = resource.warren_virtual_machine.denvr_vm[count.index].id
+
+  connection {
+    type        = "ssh"
+    user        = var.username
+    private_key = file(var.ssh_private_key)
+    host        = self.address
+  }
+  
+# Copie du playbook Ansible vers la VM
+  provisioner "file" {
+    source      = "../playbook.yml"  # Assurez-vous que Terraform est exécuté depuis `terraform/`
+    destination = "/tmp/playbook.yml"
+  }
+
+  # Copie de l'inventaire depuis le dossier terraform
+  provisioner "file" {
+    source      = "inventory.tmpl"  # Fichier présent dans le dossier terraform
+    destination = "/tmp/inventory"
+  }
+
+  # Exécution du playbook Ansible
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update && sudo apt install -y ansible",
+      "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
+    ]
+  }
 }

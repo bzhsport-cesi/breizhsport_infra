@@ -1,0 +1,39 @@
+name: SonarQube analysis
+
+on:
+  workflow_run:
+    workflows: ["Build and Publish Docker image"]
+    types:
+      - completed
+  workflow_dispatch: # Permet de déclencher manuellement si nécessaire
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  Analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+
+      - name: Analyze with SonarQube
+        uses: SonarSource/sonarqube-scan-action@7295e71c9583053f5bf40e9d4068a0c974603ec8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Token GitHub pour récupérer les informations des PRs
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    # Jeton généré dans SonarQube (à ajouter dans les secrets GitHub)
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} # URL de l'instance SonarQube
+        with:
+          args: |
+            -Dsonar.projectKey=your_project_key_here
+            -Dsonar.sources=src/main
+            -Dsonar.tests=src/test
+            -Dsonar.java.binaries=build/classes
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.verbose=true

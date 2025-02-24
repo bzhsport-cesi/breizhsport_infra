@@ -1,0 +1,47 @@
+name: Deploy
+
+on:
+  # On écoute l'événement `repository_dispatch` venu de front/back
+  repository_dispatch:
+    types: [front-image-deploy, back-image-deploy]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out infra repo
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform init
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Terraform apply
+        working-directory: ./terraform
+        run: |
+          terraform apply -auto-approve \
+            -var "api_token=${{ secrets.API_TOKEN }}" \
+            -var "ssh_private_key=${{ secrets.SSH_PRIVATE_KEY }}" \
+            -var "ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
+            -var "username=${{ secrets.ANSIBLE_USER }}" \
+            -var "front_image_tag=${{ github.event.client_payload.image_tag }}" \
+            -var "some_other_var=..." 
+          # ^^^ tu ajoutes ici toutes les var nécessaires
+
+      # Facultatif : si tu ne relies pas Ansible à Terraform via un provisioner,
+      # tu peux lancer Ansible ici directement.
+      - name: Run Ansible
+        if: always()
+        env:
+          ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
+          ANSIBLE_HOST_KEY_CHECKING: False
+        run: |
+          ansible-playbook -i ansible/inventory ansible/playbook.yml \
+            --private-key <clé SSH> \
+            -u ${{ secrets.ANSIBLE_USER }} \
+            --ssh-common-args='-o StrictHostKeyChecking=no' \
+            --extra-vars "image_name=${{ github.event.client_payload.image_tag }}"
+            # ...

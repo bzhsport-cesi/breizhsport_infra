@@ -26,7 +26,7 @@ resource "warren_floating_ip" "denvr_ip" {
   connection {
     type        = "ssh"
     user        = var.username
-    private_key = file(var.ssh_private_key)
+    private_key = var.ssh_private_key
     host        = self.address
   }
   

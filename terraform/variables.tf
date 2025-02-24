@@ -58,3 +58,15 @@ variable "network_name" {
   description = "Name of the network to connect created VMs"
   type        = string
 }
+
+variable "front_image_tag" {
+  description = "Tag de l'image Docker front à déployer"
+  type        = string
+  default     = "ghcr.io/owner/front:latest"
+}
+
+variable "back_image_tag" {
+  description = "Tag de l'image Docker back à déployer"
+  type        = string
+  default     = "ghcr.io/owner/back:latest"
+}

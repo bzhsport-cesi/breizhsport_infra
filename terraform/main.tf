@@ -1,53 +1,93 @@
-
+###############################################################################
+# 1) Déclaration du réseau
+###############################################################################
 data "warren_network" "public" {
-  name = "${var.network_name}"
+  name = var.network_name
 }
 
-# Resources managed by Terraform
+###############################################################################
+# 2) Création des VMs
+###############################################################################
 resource "warren_virtual_machine" "denvr_vm" {
-    count = "${var.vm_number}"
-    disk_size_in_gb = "${var.disk_size}"
-    memory          = "${var.ram_number}"
-    name            = "${var.vm_prefix}-${count.index}"
-    username        = "${var.username}"
-    os_name         = "${var.os_name}"
-    os_version      = "${var.os_version}"
-    vcpu            = "${var.cpu_number}"
-    network_uuid = data.warren_network.public.id
-    reserve_public_ip = false
-    public_key = "${var.ssh_public_key}"
+  count             = var.vm_number
+  disk_size_in_gb   = var.disk_size
+  memory            = var.ram_number
+  name              = "${var.vm_prefix}-${count.index}"
+  username          = var.username
+  os_name           = var.os_name
+  os_version        = var.os_version
+  vcpu              = var.cpu_number
+  network_uuid      = data.warren_network.public.id
+  reserve_public_ip = false
+  public_key        = var.ssh_public_key
 }
 
+###############################################################################
+# 3) Association d'IP publiques
+###############################################################################
 resource "warren_floating_ip" "denvr_ip" {
-  count = "${var.vm_number}"
-  name = "ip-${var.vm_prefix}-${count.index}"
-  assigned_to = resource.warren_virtual_machine.denvr_vm[count.index].id
+  count       = var.vm_number
+  name        = "ip-${var.vm_prefix}-${count.index}"
+  assigned_to = warren_virtual_machine.denvr_vm[count.index].id
+}
 
+###############################################################################
+# 4) Génération de l'inventaire Ansible via templatefile()
+###############################################################################
+# Cette resource crée localement un fichier "rendered_inventory" en 
+# injectant la liste d'adresses IP dans inventory.tmpl
+resource "local_file" "ansible_inventory" {
+  content = templatefile("${path.module}/inventory.tmpl", {
+    public_ips = warren_floating_ip.denvr_ip.*.address
+    user       = var.username
+  })
+  filename = "${path.module}/rendered_inventory"
+}
+
+###############################################################################
+# 5) Provisioning Ansible via un null_resource
+###############################################################################
+# On se connecte en SSH à la première VM (index 0) pour y copier l’inventaire,
+# le playbook, puis exécuter Ansible localement sur la VM.
+resource "null_resource" "ansible_provision" {
+
+  # S'assure que la VM et l'IP sont créées avant
+  depends_on = [
+    warren_floating_ip.denvr_ip,
+    warren_virtual_machine.denvr_vm,
+  ]
+
+  # On se connecte en SSH sur la VM [0]
   connection {
     type        = "ssh"
     user        = var.username
     private_key = var.ssh_private_key
-    host        = self.address
-  }
-  
-# Copie du playbook Ansible vers la VM
-  provisioner "file" {
-    source      = "../playbook.yml"  # Assurez-vous que Terraform est exécuté depuis `terraform/`
-    destination = "/tmp/playbook.yml"
+    host        = warren_floating_ip.denvr_ip[0].address
   }
 
-  # Copie de l'inventaire depuis le dossier terraform
+  # Copie de l'inventaire rendu (rendered_inventory) dans la VM
   provisioner "file" {
-    source      = "inventory.tmpl"  # Fichier présent dans le dossier terraform
+    source      = local_file.ansible_inventory.filename
     destination = "/tmp/inventory"
   }
 
-  # Exécution du playbook Ansible
-provisioner "remote-exec" {
-  inline = [
-    "sudo apt update && sudo apt install -y ansible python3-pip",
-    "ansible-galaxy collection install community.docker",
-    "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
-  ]
+  # Copie du playbook dans la VM
+  provisioner "file" {
+    source      = "../playbook.yml"
+    destination = "/tmp/playbook.yml"
+  }
+
+  # Installation d'Ansible et exécution du playbook
+  provisioner "remote-exec" {
+    inline = [
+      # 1. Installer Ansible, pip, etc.
+      "sudo apt update && sudo apt install -y ansible python3-pip",
+
+      # 2. Installer la collection community.docker (pour docker_compose_v2)
+      "ansible-galaxy collection install community.docker",
+
+      # 3. Lancer le playbook avec l'inventaire
+      "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
+    ]
   }
 }

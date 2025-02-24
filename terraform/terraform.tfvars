@@ -1,0 +1,8 @@
+vm_prefix = "machine_TD"
+os_name = "ubuntu"
+os_version = "22.04"
+vm_number = "1"
+cpu_number = "1"
+ram_number = "512"
+disk_size = "20"
+network_name = "cesi"

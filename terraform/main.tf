@@ -43,10 +43,11 @@ resource "warren_floating_ip" "denvr_ip" {
   }
 
   # Exécution du playbook Ansible
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt update && sudo apt install -y ansible",
-      "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
-    ]
+provisioner "remote-exec" {
+  inline = [
+    "sudo apt update && sudo apt install -y ansible python3-pip",
+    "ansible-galaxy collection install community.docker",
+    "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
+  ]
   }
 }

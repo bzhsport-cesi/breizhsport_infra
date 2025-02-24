@@ -80,13 +80,18 @@ resource "null_resource" "ansible_provision" {
   # Installation d'Ansible et exécution du playbook
   provisioner "remote-exec" {
     inline = [
-      # 1. Mise à jour + installation sans interaction
-      "sudo DEBIAN_FRONTEND=noninteractive apt-get update -yq && sudo DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -yq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq ansible python3-pip",
+      # Désinstalle "needrestart" pour éviter les prompts interactifs
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get -yq remove needrestart || true",
 
-      # 2. Installer la collection `community.docker`
+      # Mise à jour + installation Ansible
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get update -yq && \
+      sudo DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -yq && \
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq ansible python3-pip",
+
+      # Installer la collection Docker
       "ansible-galaxy collection install community.docker",
 
-      # 3. Lancer le playbook
+      # Lancer le playbook
       "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
     ]
   }

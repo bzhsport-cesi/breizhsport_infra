@@ -2,39 +2,45 @@
 - name: denvr
   hosts: all
   become: true
+
+  vars:
+    # Liste de paquets Docker (incluant docker-compose-plugin pour Docker Compose V2)
+    docker_packages:
+      - docker.io
+      - docker-compose-plugin
+
   tasks:
-    
     - name: Update & upgrade
       ansible.builtin.apt:
         upgrade: yes
         update_cache: yes
 
-    - name: Docker is present
+    - name: Install Docker packages
       ansible.builtin.apt:
-        name: docker
+        name: "{{ docker_packages }}"
         state: present
         update_cache: yes
 
-    - name: Log into registry 
+    - name: Log into registry
       community.docker.docker_login:
         registry_url: ghcr.io
-        username: '{{ registry_username }}'
-        password: '{{ registry_token }}'
-    
+        username: "{{ registry_username }}"
+        password: "{{ registry_token }}"
+
     - name: Create a directory if it does not exist
       ansible.builtin.file:
         path: /home/{{ ansible_user }}/app
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: docker-compose.yml is present
       ansible.builtin.template:
         src: templates/docker-compose.yml.j2
-        dest: app/docker-compose.yml
+        dest: /home/{{ ansible_user }}/app/docker-compose.yml
 
-    - name: App is present
+    - name: App is present (run docker compose)
       community.docker.docker_compose_v2:
-        project_src: app
+        project_src: "/home/{{ ansible_user }}/app"
         state: present
       register: output
 

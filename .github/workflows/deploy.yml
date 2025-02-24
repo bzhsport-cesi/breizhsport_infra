@@ -4,6 +4,7 @@ on:
   # On écoute l'événement `repository_dispatch` venu de front/back
   repository_dispatch:
     types: [front-image-deploy, back-image-deploy]
+  workflow_dispatch: # Permet aussi de lancer le workflow manuellement depuis l'UI GitHub
 
 jobs:
   deploy:
@@ -23,25 +24,30 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform apply -auto-approve \
+            -var-file="terraform.tfvars" \
             -var "api_token=${{ secrets.API_TOKEN }}" \
             -var "ssh_private_key=${{ secrets.SSH_PRIVATE_KEY }}" \
             -var "ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
             -var "username=${{ secrets.ANSIBLE_USER }}" \
-            -var "front_image_tag=${{ github.event.client_payload.image_tag }}" \
-            -var "some_other_var=..." 
-          # ^^^ tu ajoutes ici toutes les var nécessaires
+            -var "front_image_tag=${{ github.event.client_payload.image_tag }}"
 
-      # Facultatif : si tu ne relies pas Ansible à Terraform via un provisioner,
-      # tu peux lancer Ansible ici directement.
+      - name: Prepare SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+          chmod 600 id_rsa
+
+      - name: Install Ansible + community.docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+          ansible-galaxy collection install community.docker
+
       - name: Run Ansible
-        if: always()
         env:
           ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
           ANSIBLE_HOST_KEY_CHECKING: False
         run: |
           ansible-playbook -i ansible/inventory ansible/playbook.yml \
-            --private-key <clé SSH> \
-            -u ${{ secrets.ANSIBLE_USER }} \
-            --ssh-common-args='-o StrictHostKeyChecking=no' \
+            --private-key id_rsa \
+            -u ${{ env.ANSIBLE_USER }} \
             --extra-vars "image_name=${{ github.event.client_payload.image_tag }}"
-            # ...

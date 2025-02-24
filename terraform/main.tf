@@ -80,13 +80,13 @@ resource "null_resource" "ansible_provision" {
   # Installation d'Ansible et exécution du playbook
   provisioner "remote-exec" {
     inline = [
-      # 1. Installer Ansible, pip, etc.
-      "sudo apt update && sudo apt install -y ansible python3-pip",
+      # 1. Mise à jour + installation sans interaction
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get update -yq && sudo DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -yq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq ansible python3-pip",
 
-      # 2. Installer la collection community.docker (pour docker_compose_v2)
+      # 2. Installer la collection `community.docker`
       "ansible-galaxy collection install community.docker",
 
-      # 3. Lancer le playbook avec l'inventaire
+      # 3. Lancer le playbook
       "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv"
     ]
   }

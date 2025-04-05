@@ -1,4 +1,2 @@
-[denvr]
-%{ for ip in public_ips ~}
-${ip}
-%{ endfor ~}
+[all]
+localhost ansible_connection=local

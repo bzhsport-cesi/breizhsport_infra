@@ -83,8 +83,16 @@ resource "null_resource" "ansible_provision" {
   # Exécution du playbook Ansible
   provisioner "remote-exec" {
     inline = [
+      # Supprimer les prompts interactifs
+      "echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections",
+
+      # Mise à jour + installation d'Ansible
       "sudo apt-get update -yq && sudo apt-get install -yq ansible python3-pip",
+
+      # Installer les collections Ansible nécessaires
       "ansible-galaxy collection install community.docker",
+
+      # Lancer le playbook
       "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token}'"
     ]
   }

@@ -15,9 +15,15 @@
       ansible.builtin.apt:
         update_cache: yes
 
-    - name: Remove conflicting containerd if present
+    - name: Remove any conflicting Docker packages
       ansible.builtin.apt:
-        name: containerd
+        name:
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - podman-docker
+          - containerd
+          - runc
         state: absent
       ignore_errors: yes
 
@@ -50,10 +56,10 @@
       ansible.builtin.apt:
         update_cache: yes
 
-    - name: Install Docker packages
+    - name: Install latest Docker & Compose packages
       ansible.builtin.apt:
         name: "{{ docker_packages }}"
-        state: present
+        state: latest
 
     - name: Docker login GHCR
       community.docker.docker_login:

@@ -46,8 +46,6 @@
           - software-properties-common
           - gnupg
           - lsb-release
-          - nginx
-          - python3-certbot-nginx
         state: present
         update_cache: yes
 
@@ -107,31 +105,24 @@
         project_src: "/home/{{ ansible_user | default('ubuntu') }}/app"
         state: present
 
-    - name: Deploy nginx configuration
-      ansible.builtin.template:
-        src: "/tmp/nginx.conf.j2"
-        dest: "/etc/nginx/sites-available/frontend"
-      notify: Reload Nginx
+    - name: Stop Nginx container temporarily
+      community.docker.docker_container:
+        name: app-nginx-1
+        state: stopped
+      ignore_errors: true
 
-    - name: Enable nginx frontend config
-      ansible.builtin.file:
-        src: /etc/nginx/sites-available/frontend
-        dest: /etc/nginx/sites-enabled/frontend
-        state: link
-        force: true
-      notify: Reload Nginx
-
-    - name: Remove default nginx config
-      ansible.builtin.file:
-        path: /etc/nginx/sites-enabled/default
-        state: absent
-      notify: Reload Nginx
-
-    - name: Obtain SSL certificate with Certbot
-      ansible.builtin.shell: |
-        certbot --nginx --non-interactive --agree-tos -d {{ frontend_domain }} -m {{ letsencrypt_email }}
+    - name: Obtain SSL certificate using Certbot standalone
+      ansible.builtin.shell: >
+        certbot certonly --standalone --non-interactive --agree-tos
+        -d {{ frontend_domain }} -m {{ letsencrypt_email }}
       args:
         creates: "/etc/letsencrypt/live/{{ frontend_domain }}"
+
+    - name: Start Nginx container again
+      community.docker.docker_container:
+        name: app-nginx-1
+        state: started
+      ignore_errors: true
 
     - name: Afficher l'IP publique de la VM
       ansible.builtin.shell: "curl -s ifconfig.me"
@@ -140,9 +131,3 @@
     - name: Print deployed frontend URL
       ansible.builtin.debug:
         msg: "Votre frontend est disponible : https://{{ frontend_domain }} (IP : {{ vm_ip.stdout }})"
-
-  handlers:
-    - name: Reload Nginx
-      ansible.builtin.service:
-        name: nginx
-        state: reloaded

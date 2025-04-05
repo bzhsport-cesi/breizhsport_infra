@@ -63,13 +63,11 @@ resource "null_resource" "ansible_provision" {
     host        = warren_floating_ip.denvr_ip[0].address
   }
 
-  # Copie de l’inventaire généré
   provisioner "file" {
     source      = local_file.ansible_inventory.filename
     destination = "/tmp/inventory"
   }
 
-  # Copie du playbook et du template Docker Compose
   provisioner "file" {
     source      = "${path.module}/../playbook.yml"
     destination = "/tmp/playbook.yml"
@@ -80,24 +78,24 @@ resource "null_resource" "ansible_provision" {
     destination = "/tmp/docker-compose.yml.j2"
   }
 
-  # Exécution du playbook Ansible
   provisioner "remote-exec" {
     inline = [
-      # 1. Supprimer needrestart (qui crée le prompt)
+      # Supprimer needrestart pour éviter les prompts
       "sudo apt-get remove -y needrestart",
 
-      # 2. Désactiver les redémarrages interactifs d’APT
+      # Éviter les redémarrages interactifs
       "echo 'DPkg::Options { \"--force-confdef\"; \"--force-confold\"; };' | sudo tee -a /etc/apt/apt.conf.d/99force-no-prompt",
       "echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections",
 
-      # 3. Mettre à jour les paquets et installer Ansible
-      "sudo DEBIAN_FRONTEND=noninteractive apt-get update -yq",
-      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq ansible python3-pip",
+      # Installer Ansible via pip
+      "sudo apt-get update -y",
+      "sudo apt-get install -y python3-pip",
+      "sudo pip3 install --break-system-packages ansible",
 
-      # 4. Installer la collection Docker pour Ansible
+      # Installer la collection Docker compatible
       "ansible-galaxy collection install community.docker",
 
-      # 5. Lancer le playbook
+      # Lancer le playbook avec les variables GHCR
       "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token}'"
     ]
   }

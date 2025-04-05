@@ -11,6 +11,16 @@
       - docker-compose-plugin
 
   tasks:
+    - name: Stop and remove existing Docker containers (if any)
+      ansible.builtin.shell: |
+        docker ps -aq | xargs -r docker rm -f
+      ignore_errors: true
+
+    - name: Prune unused Docker resources (volumes, networks, etc.)
+      ansible.builtin.shell: |
+        docker system prune -af
+      ignore_errors: true
+
     - name: Update only APT cache
       ansible.builtin.apt:
         update_cache: yes

@@ -1,53 +1,38 @@
-name: Deploy
+name: Deploy Frontend VM
 
 on:
-  # On écoute l'événement `repository_dispatch` venu de front/back
-  repository_dispatch:
-    types: [front-image-deploy, back-image-deploy]
-  workflow_dispatch: # Permet aussi de lancer le workflow manuellement depuis l'UI GitHub
+  workflow_dispatch:  # Lancement manuel depuis l'interface GitHub
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out infra repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform init
-        working-directory: ./terraform
+      - name: Terraform Init
+        working-directory: terraform
         run: terraform init
 
-      - name: Terraform apply
-        working-directory: ./terraform
+      - name: Terraform Apply
+        working-directory: terraform
         run: |
           terraform apply -auto-approve \
-            -var-file="terraform.tfvars" \
-            -var "api_token=${{ secrets.API_TOKEN }}" \
-            -var "ssh_private_key=${{ secrets.SSH_PRIVATE_KEY }}" \
-            -var "ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
-            -var "username=${{ secrets.ANSIBLE_USER }}" \
-            -var "front_image_tag=${{ github.event.client_payload.image_tag }}"
+            -var="api_token=${{ secrets.API_TOKEN }}" \
+            -var="ssh_private_key=${{ secrets.SSH_PRIVATE_KEY }}" \
+            -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
+            -var="username=${{ secrets.ANSIBLE_USER }}" \
+            -var="registry_username=${{ github.repository_owner }}" \
+            -var="registry_token=${{ secrets.REGISTRY_TOKEN }}" \
+            -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra"
 
-      - name: Prepare SSH key
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
-          chmod 600 id_rsa
-
-      - name: Install Ansible + community.docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible
-          ansible-galaxy collection install community.docker
-
-      - name: Run Ansible
-        env:
-          ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
-          ANSIBLE_HOST_KEY_CHECKING: False
-        run: |
-          ansible-playbook -i ansible/inventory ansible/playbook.yml \
-            --private-key id_rsa \
-            -u ${{ env.ANSIBLE_USER }} \
-            --extra-vars "image_name=${{ github.event.client_payload.image_tag }}"
+      - name: Cleanup
+        run: rm -f terraform/id_rsa

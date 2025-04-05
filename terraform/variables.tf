@@ -62,11 +62,15 @@ variable "network_name" {
 variable "front_image_tag" {
   description = "Tag de l'image Docker front à déployer"
   type        = string
-  default     = "ghcr.io/owner/front:latest"
+  default     = "ghcr.io/bzhsport-cesi/breizhsport_front:infra"
 }
 
-variable "back_image_tag" {
-  description = "Tag de l'image Docker back à déployer"
+variable "registry_username" {
+  description = "GitHub Container Registry username"
   type        = string
-  default     = "ghcr.io/owner/back:latest"
+}
+
+variable "registry_token" {
+  description = "GitHub Container Registry token/password"
+  type        = string
 }

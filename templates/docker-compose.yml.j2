@@ -1,5 +1,6 @@
 services:
   app:
     image: {{ image_name }}
+    restart: always
     ports:
-      - '8080:3000'
+      - "80:3000"

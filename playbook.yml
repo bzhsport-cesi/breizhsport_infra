@@ -1,49 +1,42 @@
----
-- name: denvr
+- name: Provision Frontend VM
   hosts: all
   become: true
 
   vars:
-    # Liste de paquets Docker (incluant docker-compose-plugin pour Docker Compose V2)
     docker_packages:
       - docker.io
       - docker-compose-plugin
 
   tasks:
-    - name: Update & upgrade
-      ansible.builtin.apt:
-        upgrade: yes
+    - name: Update & Upgrade packages
+      apt:
+        upgrade: dist
         update_cache: yes
 
-    - name: Install Docker packages
-      ansible.builtin.apt:
+    - name: Install Docker
+      apt:
         name: "{{ docker_packages }}"
         state: present
         update_cache: yes
 
-    - name: Log into registry
+    - name: Docker login GHCR
       community.docker.docker_login:
         registry_url: ghcr.io
         username: "{{ registry_username }}"
         password: "{{ registry_token }}"
 
-    - name: Create a directory if it does not exist
-      ansible.builtin.file:
-        path: /home/{{ ansible_user }}/app
+    - name: Create app directory
+      file:
+        path: "/home/{{ ansible_user }}/app"
         state: directory
         mode: "0755"
 
-    - name: docker-compose.yml is present
-      ansible.builtin.template:
-        src: templates/docker-compose.yml.j2
-        dest: /home/{{ ansible_user }}/app/docker-compose.yml
+    - name: Deploy docker-compose.yml
+      template:
+        src: "/tmp/docker-compose.yml.j2"
+        dest: "/home/{{ ansible_user }}/app/docker-compose.yml"
 
-    - name: App is present (run docker compose)
+    - name: Launch Docker Compose
       community.docker.docker_compose_v2:
         project_src: "/home/{{ ansible_user }}/app"
         state: present
-      register: output
-
-    - name: Show results
-      ansible.builtin.debug:
-        var: output

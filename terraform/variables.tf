@@ -86,11 +86,11 @@ variable "letsencrypt_email" {
 }
 
 variable "cloudflare_api_token" {
-  description = "API token for Cloudflare"
+  description = "API Token for Cloudflare"
   type        = string
 }
 
 variable "cloudflare_zone_id" {
-  description = "Cloudflare zone ID for the frontend domain"
+  description = "Cloudflare Zone ID for the domain"
   type        = string
 }

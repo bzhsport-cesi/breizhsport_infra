@@ -1,0 +1,30 @@
+events {}
+
+http {
+  server {
+    listen 80;
+    server_name {{ frontend_domain }};
+
+    location /.well-known/acme-challenge/ {
+      root /var/lib/letsencrypt/;
+    }
+
+    location / {
+      return 301 https://$host$request_uri;
+    }
+  }
+
+  server {
+    listen 443 ssl;
+    server_name {{ frontend_domain }};
+
+    ssl_certificate     /etc/letsencrypt/live/{{ frontend_domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ frontend_domain }}/privkey.pem;
+
+    location / {
+      proxy_pass http://app:3000;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+    }
+  }
+}

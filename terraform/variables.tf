@@ -74,3 +74,13 @@ variable "registry_token" {
   description = "GitHub Container Registry token/password"
   type        = string
 }
+
+variable "frontend_domain" {
+  description = "Nom de domaine pointant vers le frontend"
+  type        = string
+}
+
+variable "letsencrypt_email" {
+  description = "Adresse e-mail pour Let's Encrypt"
+  type        = string
+}

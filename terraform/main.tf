@@ -78,25 +78,21 @@ resource "null_resource" "ansible_provision" {
     destination = "/tmp/docker-compose.yml.j2"
   }
 
+  provisioner "file" {
+    source      = "${path.module}/../templates/nginx.conf.j2"
+    destination = "/tmp/nginx.conf.j2"
+  }
+
   provisioner "remote-exec" {
     inline = [
-      # Supprimer needrestart pour éviter les prompts
       "sudo apt-get remove -y needrestart",
-
-      # Éviter les redémarrages interactifs
       "echo 'DPkg::Options { \"--force-confdef\"; \"--force-confold\"; };' | sudo tee -a /etc/apt/apt.conf.d/99force-no-prompt",
       "echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections",
-
-      # Installer Ansible via pip (sans --break-system-packages)
       "sudo apt-get update -y",
       "sudo apt-get install -y python3-pip python3-dev build-essential",
       "pip3 install --user ansible",
-
-      # Ajouter ~/.local/bin au PATH pour accéder à ansible
       "export PATH=$HOME/.local/bin:$PATH && ansible-galaxy collection install community.docker",
-
-      # Exécution du playbook avec les variables GHCR
-      "export PATH=$HOME/.local/bin:$PATH && ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token}'"
+      "export PATH=$HOME/.local/bin:$PATH && ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token} frontend_domain=${var.frontend_domain} letsencrypt_email=${var.letsencrypt_email}'"
     ]
   }
 }

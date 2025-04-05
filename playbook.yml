@@ -12,17 +12,31 @@
       ansible.builtin.apt:
         update_cache: yes
 
+    - name: Ensure required tools are installed
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+          - gnupg
+        state: present
+
     - name: Remove conflicting containerd if present
       ansible.builtin.apt:
         name: containerd
         state: absent
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Install Docker packages
       ansible.builtin.apt:
         name: "{{ docker_packages }}"
         state: present
         update_cache: yes
+
+    - name: Enable and start Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
 
     - name: Docker login GHCR
       community.docker.docker_login:
@@ -34,12 +48,17 @@
       ansible.builtin.file:
         path: "/home/{{ ansible_user }}/app"
         state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
         mode: "0755"
 
     - name: Deploy docker-compose.yml
       ansible.builtin.template:
         src: "/tmp/docker-compose.yml.j2"
         dest: "/home/{{ ansible_user }}/app/docker-compose.yml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
 
     - name: Launch Docker Compose
       community.docker.docker_compose_v2:
@@ -52,4 +71,4 @@
 
     - name: Print deployed frontend URL
       ansible.builtin.debug:
-        msg: "Votre frontend est en ligne : http://{{ vm_ip.stdout }}:8080"
+        msg: "✅ Votre frontend est en ligne ici : http://{{ vm_ip.stdout }}:8080"

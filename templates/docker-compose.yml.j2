@@ -1,4 +1,12 @@
 services:
+  app:
+    image: {{ image_name }}
+    restart: always
+    expose:
+      - "3000"
+    networks:
+      - frontend_net
+
   nginx:
     image: nginx:latest
     restart: always
@@ -11,9 +19,8 @@ services:
       - ./certs-data:/var/lib/letsencrypt
     depends_on:
       - app
+    networks:
+      - frontend_net
 
-  app:
-    image: {{ image_name }}
-    restart: always
-    expose:
-      - "3000"
+networks:
+  frontend_net:

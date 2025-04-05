@@ -84,3 +84,13 @@ variable "letsencrypt_email" {
   description = "Adresse e-mail pour Let's Encrypt"
   type        = string
 }
+
+variable "cloudflare_api_token" {
+  description = "API token for Cloudflare"
+  type        = string
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone ID for the frontend domain"
+  type        = string
+}

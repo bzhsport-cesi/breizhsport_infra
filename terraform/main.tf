@@ -35,7 +35,20 @@ resource "warren_floating_ip" "denvr_ip" {
 }
 
 ###############################################################################
-# 4) Génération d’un inventaire Ansible
+# 4) Enregistrement DNS Cloudflare
+###############################################################################
+
+resource "cloudflare_record" "frontend_dns" {
+  zone_id = var.cloudflare_zone_id
+  name    = var.frontend_domain
+  type    = "A"
+  value   = warren_floating_ip.denvr_ip[0].address
+  ttl     = 120
+  proxied = true
+}
+
+###############################################################################
+# 5) Génération d’un inventaire Ansible
 ###############################################################################
 
 resource "local_file" "ansible_inventory" {
@@ -47,13 +60,14 @@ resource "local_file" "ansible_inventory" {
 }
 
 ###############################################################################
-# 5) Provisioning Ansible
+# 6) Provisioning Ansible
 ###############################################################################
 
 resource "null_resource" "ansible_provision" {
   depends_on = [
     warren_floating_ip.denvr_ip,
     warren_virtual_machine.denvr_vm,
+    cloudflare_record.frontend_dns,
   ]
 
   connection {

@@ -32,6 +32,8 @@ jobs:
             -var="username=${{ secrets.ANSIBLE_USER }}" \
             -var="registry_username=${{ github.repository_owner }}" \
             -var="registry_token=${{ secrets.REGISTRY_TOKEN }}" \
+            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra"
 
       - name: Cleanup

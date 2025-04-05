@@ -83,16 +83,21 @@ resource "null_resource" "ansible_provision" {
   # Exécution du playbook Ansible
   provisioner "remote-exec" {
     inline = [
-      # Supprimer les prompts interactifs
+      # 1. Supprimer needrestart (qui crée le prompt)
+      "sudo apt-get remove -y needrestart",
+
+      # 2. Désactiver les redémarrages interactifs d’APT
+      "echo 'DPkg::Options { \"--force-confdef\"; \"--force-confold\"; };' | sudo tee -a /etc/apt/apt.conf.d/99force-no-prompt",
       "echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections",
 
-      # Mise à jour + installation d'Ansible
-      "sudo apt-get update -yq && sudo apt-get install -yq ansible python3-pip",
+      # 3. Mettre à jour les paquets et installer Ansible
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get update -yq",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq ansible python3-pip",
 
-      # Installer les collections Ansible nécessaires
+      # 4. Installer la collection Docker pour Ansible
       "ansible-galaxy collection install community.docker",
 
-      # Lancer le playbook
+      # 5. Lancer le playbook
       "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token}'"
     ]
   }

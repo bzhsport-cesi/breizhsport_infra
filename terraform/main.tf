@@ -87,16 +87,16 @@ resource "null_resource" "ansible_provision" {
       "echo 'DPkg::Options { \"--force-confdef\"; \"--force-confold\"; };' | sudo tee -a /etc/apt/apt.conf.d/99force-no-prompt",
       "echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections",
 
-      # Installer Ansible via pip
+      # Installer Ansible via pip (sans --break-system-packages)
       "sudo apt-get update -y",
-      "sudo apt-get install -y python3-pip",
-      "sudo pip3 install --break-system-packages ansible",
+      "sudo apt-get install -y python3-pip python3-dev build-essential",
+      "pip3 install --user ansible",
 
-      # Installer la collection Docker compatible
-      "ansible-galaxy collection install community.docker",
+      # Ajouter ~/.local/bin au PATH pour accéder à ansible
+      "export PATH=$HOME/.local/bin:$PATH && ansible-galaxy collection install community.docker",
 
-      # Lancer le playbook avec les variables GHCR
-      "ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token}'"
+      # Exécution du playbook avec les variables GHCR
+      "export PATH=$HOME/.local/bin:$PATH && ansible-playbook -i /tmp/inventory /tmp/playbook.yml -vvv --extra-vars 'image_name=${var.front_image_tag} registry_username=${var.registry_username} registry_token=${var.registry_token}'"
     ]
   }
 }

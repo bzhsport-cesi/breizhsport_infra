@@ -8,9 +8,8 @@
       - docker-compose-plugin
 
   tasks:
-    - name: Update & Upgrade packages
+    - name: Update only APT cache
       ansible.builtin.apt:
-        upgrade: dist
         update_cache: yes
 
     - name: Remove conflicting containerd if present

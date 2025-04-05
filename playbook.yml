@@ -89,4 +89,4 @@
 
     - name: Print deployed frontend URL
       ansible.builtin.debug:
-        msg: "Votre frontend est en ligne : http://{{ vm_ip.stdout }}:8080"
+        msg: "Le frontend est en ligne : http://{{ vm_ip.stdout }}:80"

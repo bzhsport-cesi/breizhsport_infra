@@ -43,7 +43,7 @@ resource "cloudflare_record" "frontend_dns" {
   name    = var.frontend_domain
   type    = "A"
   value   = warren_floating_ip.denvr_ip[0].address
-  ttl     = 120
+  ttl     = 1
   proxied = true
 }
 

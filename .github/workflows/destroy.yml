@@ -1,18 +1,10 @@
-name: Deploy Frontend VM
+name: Destroy Frontend VM
 
 on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  packages: write
+  workflow_call:  # Ce workflow pourra être appelé depuis un autre
 
 jobs:
-  destroy-before-deploy:
-    uses: ./.github/workflows/destroy.yml  # Appel du workflow "destroy"
-
-  deploy:
-    needs: destroy-before-deploy  # Attend que la destruction soit faite
+  destroy:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,10 +18,10 @@ jobs:
         working-directory: terraform
         run: terraform init
 
-      - name: Terraform Apply
+      - name: Terraform Destroy
         working-directory: terraform
         run: |
-          terraform apply -auto-approve \
+          terraform destroy -auto-approve \
             -var="api_token=${{ secrets.API_TOKEN }}" \
             -var="ssh_private_key=${{ secrets.SSH_PRIVATE_KEY }}" \
             -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
@@ -39,6 +31,3 @@ jobs:
             -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra"
-
-      - name: Cleanup
-        run: rm -f terraform/id_rsa

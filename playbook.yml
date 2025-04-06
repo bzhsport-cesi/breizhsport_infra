@@ -12,13 +12,11 @@
 
   tasks:
     - name: Stop and remove existing Docker containers (if any)
-      ansible.builtin.shell: |
-        docker ps -aq | xargs -r docker rm -f
+      ansible.builtin.shell: docker ps -aq | xargs -r docker rm -f
       ignore_errors: true
 
     - name: Prune unused Docker resources (volumes, networks, etc.)
-      ansible.builtin.shell: |
-        docker system prune -af
+      ansible.builtin.shell: docker system prune -af
       ignore_errors: true
 
     - name: Update only APT cache
@@ -46,8 +44,6 @@
           - software-properties-common
           - gnupg
           - lsb-release
-          - certbot
-          - python3-certbot-nginx
         state: present
         update_cache: yes
 
@@ -106,25 +102,6 @@
       community.docker.docker_compose_v2:
         project_src: "/home/{{ ansible_user | default('ubuntu') }}/app"
         state: present
-
-    - name: Stop Nginx container temporarily
-      community.docker.docker_container:
-        name: app-nginx-1
-        state: stopped
-      ignore_errors: true
-
-    - name: Obtain SSL certificate using Certbot standalone
-      ansible.builtin.shell: >
-        certbot certonly --standalone --non-interactive --agree-tos
-        -d {{ frontend_domain }} -m {{ letsencrypt_email }}
-      args:
-        creates: "/etc/letsencrypt/live/{{ frontend_domain }}"
-
-    - name: Start Nginx container again
-      community.docker.docker_container:
-        name: app-nginx-1
-        state: started
-      ignore_errors: true
 
     - name: Afficher l'IP publique de la VM
       ansible.builtin.shell: "curl -s ifconfig.me"

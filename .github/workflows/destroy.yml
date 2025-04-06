@@ -35,7 +35,7 @@ jobs:
             -var="registry_token=${{ secrets.REGISTRY_TOKEN }}" \
             -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-            -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra"
+            -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra" || true
 
       - name: Vérification post-destruction
         working-directory: terraform
@@ -46,9 +46,9 @@ jobs:
           DNS_COUNT=$(terraform state list | grep cloudflare_record || true | wc -l)
 
           if [ "$VM_COUNT" -eq 0 ] && [ "$DNS_COUNT" -eq 0 ]; then
-            echo "Toutes les ressources ont bien été supprimées."
+            echo "✅ Toutes les ressources ont bien été supprimées."
           else
-            echo "Certaines ressources semblent encore présentes dans l'état Terraform :"
+            echo "⚠️ Certaines ressources semblent encore présentes dans l'état Terraform :"
             terraform state list
             exit 1
           fi

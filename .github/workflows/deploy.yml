@@ -13,8 +13,6 @@ jobs:
   destroy-before-deploy:
     name: Destroy Existing Infra
     runs-on: ubuntu-latest
-    env:
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -29,9 +27,12 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      - name: Export TF_API_TOKEN
+        run: echo "TF_API_TOKEN=${{ secrets.TF_API_TOKEN }}" >> $GITHUB_ENV
+
       - name: Debug TF_API_TOKEN (masqué)
         run: |
-          if [ -n "${{ secrets.TF_API_TOKEN }}" ]; then
+          if [ -n "$TF_API_TOKEN" ]; then
             echo "TF_API_TOKEN is set to: ***✅ present***"
           else
             echo "TF_API_TOKEN is set to: ***❌ missing***"
@@ -59,8 +60,6 @@ jobs:
     name: Deploy Frontend Infra
     needs: destroy-before-deploy
     runs-on: ubuntu-latest
-    env:
-      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -75,9 +74,12 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      - name: Export TF_API_TOKEN
+        run: echo "TF_API_TOKEN=${{ secrets.TF_API_TOKEN }}" >> $GITHUB_ENV
+
       - name: Debug TF_API_TOKEN (masqué)
         run: |
-          if [ -n "${{ secrets.TF_API_TOKEN }}" ]; then
+          if [ -n "$TF_API_TOKEN" ]; then
             echo "TF_API_TOKEN is set to: ***✅ present***"
           else
             echo "TF_API_TOKEN is set to: ***❌ missing***"

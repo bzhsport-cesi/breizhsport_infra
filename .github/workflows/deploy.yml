@@ -13,6 +13,8 @@ jobs:
   destroy-before-deploy:
     name: Destroy Existing Infra
     runs-on: ubuntu-latest
+    env:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -43,6 +45,8 @@ jobs:
     name: Deploy Frontend Infra
     needs: destroy-before-deploy
     runs-on: ubuntu-latest
+    env:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
     steps:
       - name: Checkout code

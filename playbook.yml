@@ -91,13 +91,6 @@
         src: "/tmp/nginx.conf.j2"
         dest: "/home/{{ ansible_user | default('ubuntu') }}/app/nginx.conf"
 
-    - name: Stop and disable system nginx service (host level)
-      ansible.builtin.systemd:
-        name: nginx
-        state: stopped
-        enabled: false
-      ignore_errors: true
-
     - name: Launch Docker Compose
       community.docker.docker_compose_v2:
         project_src: "/home/{{ ansible_user | default('ubuntu') }}/app"

@@ -1,4 +1,12 @@
 terraform {
+  cloud {
+    organization = "bzhsport-cesi"
+
+    workspaces {
+      name = "breizhsport-infra"
+    }
+  }
+
   required_providers {
     warren = {
       source  = "WarrenCloudPlatform/warren"

@@ -27,20 +27,11 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Export TF_API_TOKEN
-        run: echo "TF_API_TOKEN=${{ secrets.TF_API_TOKEN }}" >> $GITHUB_ENV
-
-      - name: Debug TF_API_TOKEN (masqué)
-        run: |
-          if [ -n "$TF_API_TOKEN" ]; then
-            echo "TF_API_TOKEN is set to: ***✅ present***"
-          else
-            echo "TF_API_TOKEN is set to: ***❌ missing***"
-          fi
-
       - name: Terraform Init (Destroy)
         working-directory: terraform
         run: terraform init
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Destroy
         working-directory: terraform
@@ -55,6 +46,8 @@ jobs:
             -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra" || true
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
   deploy:
     name: Deploy Frontend Infra
@@ -74,20 +67,11 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Export TF_API_TOKEN
-        run: echo "TF_API_TOKEN=${{ secrets.TF_API_TOKEN }}" >> $GITHUB_ENV
-
-      - name: Debug TF_API_TOKEN (masqué)
-        run: |
-          if [ -n "$TF_API_TOKEN" ]; then
-            echo "TF_API_TOKEN is set to: ***✅ present***"
-          else
-            echo "TF_API_TOKEN is set to: ***❌ missing***"
-          fi
-
       - name: Terraform Init (Apply)
         working-directory: terraform
         run: terraform init
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Apply
         working-directory: terraform
@@ -102,6 +86,8 @@ jobs:
             -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -var="front_image_tag=ghcr.io/${{ github.repository_owner }}/breizhsport_front:infra"
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
 
       - name: Cleanup
         run: |

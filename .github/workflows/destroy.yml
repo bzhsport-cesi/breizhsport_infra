@@ -1,8 +1,8 @@
 name: Destroy Frontend VM
 
 on:
-  workflow_call:       # Permet l'appel depuis deploy.yml
-  workflow_dispatch:   # Permet de lancer manuellement via GitHub UI
+  workflow_call:       # Appel automatique depuis un autre workflow
+  workflow_dispatch:   # Appel manuel possible
 
 permissions:
   contents: read

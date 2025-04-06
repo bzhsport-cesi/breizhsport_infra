@@ -1,7 +1,7 @@
 name: Deploy Frontend VM
 
 on:
-  workflow_dispatch:  # Déclenchement manuel
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -10,11 +10,11 @@ permissions:
 jobs:
   destroy-before-deploy:
     name: Destroy Previous Infra
-    uses: ./.github/workflows/destroy.yml  # Appel du destroy.yml
+    uses: ./.github/workflows/destroy.yml  # ✅ valide UNIQUEMENT si le repo est monorepo (infra + front)
 
   deploy:
     name: Deploy Frontend Infra
-    needs: destroy-before-deploy  # Attend que le job de destruction se termine
+    needs: destroy-before-deploy
     runs-on: ubuntu-latest
 
     steps:

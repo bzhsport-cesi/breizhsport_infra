@@ -83,17 +83,17 @@ resource "null_resource" "ansible_provision" {
   }
 
   provisioner "file" {
-    source      = "${path.root}/playbook.yml"
+    source      = "${path.module}/../playbook.yml"
     destination = "/tmp/playbook.yml"
   }
 
   provisioner "file" {
-    source      = "${path.root}/templates/docker-compose.yml.j2"
+    source      = "${path.module}/../templates/docker-compose.yml.j2"
     destination = "/tmp/docker-compose.yml.j2"
   }
 
   provisioner "file" {
-    source      = "${path.root}/templates/nginx.conf.j2"
+    source      = "${path.module}/../templates/nginx.conf.j2"
     destination = "/tmp/nginx.conf.j2"
   }
 

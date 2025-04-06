@@ -2,6 +2,8 @@ name: Deploy Frontend VM
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [deploy-from-front]
 
 permissions:
   contents: read

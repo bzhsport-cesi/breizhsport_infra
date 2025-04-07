@@ -62,7 +62,7 @@ variable "network_name" {
 variable "front_image_tag" {
   description = "Tag de l'image Docker front à déployer"
   type        = string
-  default     = "ghcr.io/bzhsport-cesi/breizhsport_front:infra"
+  default     = "ghcr.io/bzhsport-cesi/breizhsport_front:master"
 }
 
 variable "registry_username" {

@@ -40,7 +40,6 @@ breizhsport_infra/
 │   ├── provider.tf
 │   ├── inventory.tmpl
 |   ├── playbook.yml               # Playbook Ansible exécuté à distance
-|   ├── nginx.conf.j2              # Template pour nginx.conf.j2
 |   ├── inventory.tmpl             # Template pour inventory.tmpl
 |   └── docker-compose.yml.j2      # Template pour docker-compose.yml.j2
 ├── .github/workflows/             # Fichiers GitHub Actions

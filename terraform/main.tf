@@ -92,11 +92,6 @@ resource "null_resource" "ansible_provision" {
     destination = "/tmp/docker-compose.yml.j2"
   }
 
-  provisioner "file" {
-    source      = "${path.module}/nginx.conf.j2"
-    destination = "/tmp/nginx.conf.j2"
-  }
-
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get remove -y needrestart",

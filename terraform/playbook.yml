@@ -86,11 +86,6 @@
         src: "/tmp/docker-compose.yml.j2"
         dest: "/home/{{ ansible_user | default('ubuntu') }}/app/docker-compose.yml"
 
-    - name: Deploy nginx.conf
-      ansible.builtin.template:
-        src: "/tmp/nginx.conf.j2"
-        dest: "/home/{{ ansible_user | default('ubuntu') }}/app/nginx.conf"
-
     - name: Launch Docker Compose
       community.docker.docker_compose_v2:
         project_src: "/home/{{ ansible_user | default('ubuntu') }}/app"

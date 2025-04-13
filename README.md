@@ -9,9 +9,9 @@ Infrastructure as Code (IaC) pour le déploiement automatisé de l’application
 - Provisionner automatiquement une VM publique.
 - Déployer une image Docker frontend (Next.js) sur la VM via Ansible.
 - Configurer automatiquement le DNS via l’API Cloudflare.
-- Gérer les certificats HTTPS via Cloudflare Proxy.
+- Gérer les certificats HTTPS via Cloudflare.
 - Détruire et redéployer toute l'infrastructure à chaque commit.
-- Utiliser **Terraform Cloud** comme backend distant (state partagé + historique).
+- Utiliser Terraform Cloud comme backend distant (state partagé + historique).
 
 ---
 
@@ -23,7 +23,7 @@ Infrastructure as Code (IaC) pour le déploiement automatisé de l’application
 | **Ansible**                     | Configuration de la VM et déploiement Docker                        |
 | **Docker / Compose**            | Conteneurisation du frontend Next.js                                |
 | **GitHub Actions**              | CI/CD : build + destruction/redéploiement automatique               |
-| **Cloudflare**                  | DNS & HTTPS (proxy SSL Full)                                        |
+| **Cloudflare**                  | DNS & HTTPS                                                         |
 | **Terraform Cloud**             | Backend distant partagé pour stocker l’état Terraform               |
 | **Warren (DENV-R)**             | Provider cloud pour créer les VMs publiques                         |
 | **GitHub Container Registry**   | Stockage des images Docker front                                    |
@@ -93,5 +93,5 @@ terraform destroy -var="..." ...
 - Site disponible sur `https://breizhsport.me`.
 - DNS mis à jour automatiquement sur Cloudflare.
 - VM publique provisionnée automatiquement chez DENV-R.
-- Certificat HTTPS actif (via proxy Cloudflare).
+- Certificat HTTPS actif via Cloudflare.
 - Infra détruite et redéployée à chaque push.
